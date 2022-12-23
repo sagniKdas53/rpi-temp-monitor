@@ -2,12 +2,16 @@ import argparse
 import subprocess
 from datetime import datetime, timedelta
 from time import sleep
-
+import csv
 import plotext as plt
 
 
-def save_csv(x_axis, y_axis_CPU, y_axis_GPU):
-    pass
+def save_csv(x_axis, y_axis_CPU, y_axis_GPU, csv_file):
+    with open(csv_file, 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["time", "CPU", "GPU"])
+        for time, CPU, GPU in zip(x_axis, y_axis_CPU, y_axis_GPU):
+            writer.writerow([time, CPU, GPU])
 
 
 def plot(x_axis, y_axis_CPU, y_axis_GPU):
@@ -45,6 +49,7 @@ def main():
     avg_CPU = 0
     cycle_duration = opts.duration
     delta = timedelta(seconds=10, minutes=21, hours=5)
+    x_axis_present = [datetime.now().strftime("%I:%M:%S")]
     x_axis = [(datetime.now()-delta).strftime("%I:%M:%S")]
     y_axis_GPU = []
     y_axis_CPU = []
@@ -64,6 +69,7 @@ def main():
                 y_axis_CPU.append(CPU_temp)
                 y_axis_GPU.append(GPU_temp)
                 x_axis.append((datetime.now()-delta).strftime("%I:%M:%S"))
+                x_axis_present.append(datetime.now().strftime("%I:%M:%S"))
                 if stop > 0:
                     stop -= 1
                 if stop == 0:
@@ -74,13 +80,18 @@ def main():
         except Exception as e:
             print(str(e))
             break
+    x_axis = x_axis[:-1]
+    x_axis_present = x_axis_present[:-1]
     if opts.silent == False:
         print(
             f'\nAvg CPU temp: {(avg_CPU/counter):05.2f} Avg GPU temp: {(avg_GPU/counter):05.2f} Data recorded over: {((counter*cycle_duration)/60):05.2f} minutes')
     if opts.graph == True:
+        if opts.silent == False:
+            print(
+                f'\ny_axis_CPU: {y_axis_CPU}\ny_axis_GPU: {y_axis_GPU}\nx_axis: {x_axis_present}')
         plot(x_axis, y_axis_CPU, y_axis_GPU)
     if opts.output != None:
-        save_csv(x_axis, y_axis_CPU, y_axis_GPU, opts.output)
+        save_csv(x_axis_present, y_axis_CPU, y_axis_GPU, opts.output)
 
 
 if __name__ == "__main__":
