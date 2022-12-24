@@ -13,3 +13,19 @@ optional arguments:
   -a, --advanced    print a advanced graph
   -s, --silent      pass this to not display any output
   -v, --verbose     display all output
+
+
+## Usage
+python3 args.py -d 1 -l 1 -n 100 -a image.png -o file.csv -s
+
+python3 args.py -d 1 -l 1 -n 100 -a -o file.csv -s
+
+python3 args.py -d 1 -l 1 -n 100 -b -o file.csv -s
+
+python3 args.py -d 1 -l 1 -n 100 -b -o file.csv -v
+
+python3 args.py -d 1 -l 1 -n 100 -b -s
+
+python3 args.py -d 1 -l 1 -n 100 -o file.csv -s
+
+python3 args.py -d 1 -l 1 -o file.csv -s

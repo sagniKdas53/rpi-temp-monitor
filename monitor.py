@@ -26,16 +26,24 @@ def plot(x_axis, y_axis_CPU, y_axis_GPU):
     plt.show()
 
 
-def plot_matplotlib(x_axis, y_axis_CPU, y_axis_GPU, save=True):
+def plot_matplotlib(x_axis, y_axis_CPU, y_axis_GPU, save_in, verbose):
     mplt.plot(x_axis, y_axis_CPU, label="CPU")
     mplt.plot(x_axis, y_axis_GPU, label="GPU")
     mplt.ylabel('Temperature ($^\circ$C)')
     mplt.xlabel('Time H:M:S')
     mplt.title("Temperature plot")
     mplt.legend(loc="upper left")
-    # mplt.show()
-    if save:
-        mplt.savefig('graph.png')
+    if save_in == True:
+        mplt.show() # GUI needed, use with caution
+    else:
+        if '.' in save_in:
+            if 'png' in save_in.split('.') and verbose == True:
+                print('Saving graph in:', save_in)
+        else:
+            save_in = save_in+'.png'
+            if verbose == True:
+                print('Saving graph in:', save_in)
+        mplt.savefig(save_in)
 
 
 def main():
@@ -53,8 +61,9 @@ def main():
     group_graph = parser.add_mutually_exclusive_group()
     group_graph.add_argument('-b', '--basic', action="store_true",
                              help='print a graph in terminal')
-    group_graph.add_argument('-a', '--advanced', action="store_true",
-                             help='print a advanced graph')
+    group_graph.add_argument('-a', '--advanced', type=str, metavar="",  nargs='?', const=True, default=None,
+                             help='show a advanced graph (GUI required), pass a filename to save the graph')
+
     group_disp = parser.add_mutually_exclusive_group()
     group_disp.add_argument('-s', '--silent', action="store_true",
                             help="pass this to not display any output")
@@ -114,12 +123,13 @@ def main():
             if opts.verbose == True:
                 print('Saving data in:', opts.output)
         save_csv(x_axis_printable, y_axis_CPU, y_axis_GPU, opts.output)
-    if opts.basic == True or opts.advanced == True:
+    if opts.basic == True or opts.advanced != None:
         if opts.verbose == True:
             print(
                 f'\ny_axis_CPU= {y_axis_CPU}\ny_axis_GPU= {y_axis_GPU}\nx_axis= {x_axis_printable}')
-        if opts.advanced == True:
-            plot_matplotlib(x_axis_printable, y_axis_CPU, y_axis_GPU)
+        if opts.advanced != None:
+            plot_matplotlib(x_axis_printable, y_axis_CPU,
+                            y_axis_GPU, opts.advanced, opts.verbose)
         elif opts.basic == True:
             plot(x_axis, y_axis_CPU, y_axis_GPU)
 
