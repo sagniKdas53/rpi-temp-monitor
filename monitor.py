@@ -1,8 +1,10 @@
 import argparse
+import csv
 import subprocess
 from datetime import datetime, timedelta
 from time import sleep
-import csv
+import matplotlib.pyplot as mplt
+
 import plotext as plt
 
 
@@ -24,32 +26,50 @@ def plot(x_axis, y_axis_CPU, y_axis_GPU):
     plt.show()
 
 
+def plot_matplotlib(x_axis, y_axis_CPU, y_axis_GPU, save=True):
+    mplt.plot(x_axis, y_axis_CPU, label="CPU")
+    mplt.plot(x_axis, y_axis_GPU, label="GPU")
+    mplt.ylabel('Temperature ($^\circ$C)')
+    mplt.xlabel('Time H:M:S')
+    mplt.title("Temperature plot")
+    mplt.legend(loc="upper left")
+    # mplt.show()
+    if save:
+        mplt.savefig('graph.png')
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Measures and graphs tempertaure of raspberry pi")
-    parser.add_argument('-d', '--duration', type=int, metavar="",
+    parser.add_argument('-d', '--duration', type=int, metavar="", required=True,
                         help="duration of each measuring cycle in seconds")
-    parser.add_argument('-l', '--log', type=int, metavar="",
+    parser.add_argument('-l', '--log', type=int, metavar="", required=True,
                         help="number of measuring cycles after which to log the value")
-    parser.add_argument('-n', '--count', type=int, metavar="", nargs='?',  const=None, default=None,
+    parser.add_argument('-n', '--count', type=int, metavar="",  const=None, default=None,
                         help="number of logging cycles after which to stop, can be left blank to measure indefinitely (not recomended)")
-    parser.add_argument('-o', '--output', type=str, metavar="", nargs='?',  const=None, default=None,
+    parser.add_argument('-o', '--output', type=str, metavar="", const=None, default=None,
                         help='name of the csv to save the data, leave blank to not save')
-    parser.add_argument('-g', '--graph', type=bool, metavar="", nargs='?',  const=False, default=False,
-                        help='print a graph')
-    parser.add_argument('-s', '--silent', type=bool, metavar="", nargs='?',  const=False, default=False,
-                        help="don't display any output")
+
+    group_graph = parser.add_mutually_exclusive_group()
+    group_graph.add_argument('-b', '--basic', action="store_true",
+                             help='print a graph in terminal')
+    group_graph.add_argument('-a', '--advanced', action="store_true",
+                             help='print a advanced graph')
+    group_disp = parser.add_mutually_exclusive_group()
+    group_disp.add_argument('-s', '--silent', action="store_true",
+                            help="pass this to not display any output")
+    group_disp.add_argument('-v', '--verbose', action="store_true",
+                            help="display all output")
     opts = parser.parse_args()
     if opts.count == None:
-        stop = -1
-    else:
-        stop = opts.count
+        opts.count = -1
     counter = 0
     avg_GPU = 0
     avg_CPU = 0
     cycle_duration = opts.duration
+    # Don't know why but this delta is needed to print the graph
     delta = timedelta(seconds=10, minutes=21, hours=5)
-    x_axis_present = [datetime.now().strftime("%I:%M:%S")]
+    x_axis_printable = [datetime.now().strftime("%I:%M:%S")]
     x_axis = [(datetime.now()-delta).strftime("%I:%M:%S")]
     y_axis_GPU = []
     y_axis_CPU = []
@@ -69,10 +89,10 @@ def main():
                 y_axis_CPU.append(CPU_temp)
                 y_axis_GPU.append(GPU_temp)
                 x_axis.append((datetime.now()-delta).strftime("%I:%M:%S"))
-                x_axis_present.append(datetime.now().strftime("%I:%M:%S"))
-                if stop > 0:
-                    stop -= 1
-                if stop == 0:
+                x_axis_printable.append(datetime.now().strftime("%I:%M:%S"))
+                if opts.count > 0:
+                    opts.count -= 1
+                if opts.count == 0:
                     break
             sleep(cycle_duration)
         except KeyboardInterrupt:
@@ -81,17 +101,27 @@ def main():
             print(str(e))
             break
     x_axis = x_axis[:-1]
-    x_axis_present = x_axis_present[:-1]
+    x_axis_printable = x_axis_printable[:-1]
     if opts.silent == False:
         print(
             f'\nAvg CPU temp: {(avg_CPU/counter):05.2f} Avg GPU temp: {(avg_GPU/counter):05.2f} Data recorded over: {((counter*cycle_duration)/60):05.2f} minutes')
-    if opts.graph == True:
-        if opts.silent == False:
-            print(
-                f'\ny_axis_CPU: {y_axis_CPU}\ny_axis_GPU: {y_axis_GPU}\nx_axis: {x_axis_present}')
-        plot(x_axis, y_axis_CPU, y_axis_GPU)
     if opts.output != None:
-        save_csv(x_axis_present, y_axis_CPU, y_axis_GPU, opts.output)
+        if '.' in opts.output:
+            if 'csv' in opts.output.split('.') and opts.verbose == True:
+                print('Saving data in:', opts.output)
+        else:
+            opts.output = opts.output+'.csv'
+            if opts.verbose == True:
+                print('Saving data in:', opts.output)
+        save_csv(x_axis_printable, y_axis_CPU, y_axis_GPU, opts.output)
+    if opts.basic == True or opts.advanced == True:
+        if opts.verbose == True:
+            print(
+                f'\ny_axis_CPU= {y_axis_CPU}\ny_axis_GPU= {y_axis_GPU}\nx_axis= {x_axis_printable}')
+        if opts.advanced == True:
+            plot_matplotlib(x_axis_printable, y_axis_CPU, y_axis_GPU)
+        elif opts.basic == True:
+            plot(x_axis, y_axis_CPU, y_axis_GPU)
 
 
 if __name__ == "__main__":
