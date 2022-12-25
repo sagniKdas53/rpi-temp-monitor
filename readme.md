@@ -38,4 +38,4 @@ python3 args.py -d 1 -l 1 -o file.csv -s
 ## TODO
 
 - [ ] Write details and add screenshots for the different command above
-- [ ] Check if the conditional statements can be simplified or remove
+- [x] Check if the conditional statements can be simplified or remove

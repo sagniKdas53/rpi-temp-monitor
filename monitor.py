@@ -1,10 +1,11 @@
 import argparse
 import csv
+import os
 import subprocess
 from datetime import datetime, timedelta
 from time import sleep
+
 import matplotlib.pyplot as mplt
-import os
 import plotext as plt
 
 
@@ -33,16 +34,19 @@ def plot_matplotlib(x_axis, y_axis_CPU, y_axis_GPU, save_in, verbose):
     mplt.xlabel('Time H:M:S')
     mplt.title("Temperature plot")
     mplt.legend(loc="upper left")
-    if save_in == True:  # I don't like this that i have to check the filename with True as the filenamw would be True otherwise
+    if save_in == [] or (len(save_in) == 2 and 'show' in save_in):
         mplt.show()  # GUI needed, use with caution
-    else:
-        if os.path.splitext(save_in)[1] == ".png" and verbose == True:
-            print('\nSaving graph in:', save_in)
+        if 'show' in save_in:
+            save_in.remove('show')
+
+    if len(save_in) == 1:
+        if os.path.splitext(save_in[0])[1] == ".png" and verbose == True:
+            print('\nSaving graph in:', save_in[0])
         else:
-            save_in = save_in+'.png'
+            save_in[0] = save_in[0]+'.png'
             if verbose == True:
-                print('\nSaving graph in:', save_in)
-        mplt.savefig(save_in)
+                print('\nSaving graph in:', save_in[0])
+        mplt.savefig(save_in[0])
 
 
 def main():
@@ -60,8 +64,14 @@ def main():
     group_graph = parser.add_mutually_exclusive_group()
     group_graph.add_argument('-b', '--basic', action="store_true",
                              help='print a graph in terminal using plotext')
-    group_graph.add_argument('-a', '--advanced', type=str, metavar='',  nargs='?', const=True, default=None,
-                             help='show a advanced graph using matplotlib (GUI required), pass a filename to save the graph without displaying')
+    group_graph.add_argument('-a', '--advanced', action="extend", type=str, metavar=['filename','save'], nargs='*', default=[],  # blank array == show
+                             help='''show a advanced graph using matplotlib (GUI required)
+                            only passing the flag will show the graph and do nothing more.
+                            Pass a filename to save the graph in it.
+                            Pass filename followed by "show" (without quotes) to show the graph and save in in file''')
+    # -a --> advanced=[] --> show
+    # -a file --> advanced=[file] --> saved in file
+    # -a file show --> advanced=[file, show] --> show and save in file
 
     group_disp = parser.add_mutually_exclusive_group()
     group_disp.add_argument('-s', '--silent', action="store_true",
@@ -69,7 +79,7 @@ def main():
     group_disp.add_argument('-v', '--verbose', action="store_true",
                             help="display all output")
     opts = parser.parse_args()
-    #print(opts)
+    # print(opts)
     if opts.count == None:
         opts.count = -1
     counter = 0
