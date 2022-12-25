@@ -34,12 +34,24 @@ def plot_matplotlib(x_axis, y_axis_CPU, y_axis_GPU, save_in, verbose):
     mplt.xlabel('Time H:M:S')
     mplt.title("Temperature plot")
     mplt.legend(loc="upper left")
-    if save_in == [] or (len(save_in) == 2 and 'show' in save_in):
+    if save_in == []:  # Only show graph and leave
         mplt.show()  # GUI needed, use with caution
+
+    if len(save_in) == 2 and 'show' in save_in:  # Save and then show graph
         if 'show' in save_in:
             save_in.remove('show')
+        if os.path.splitext(save_in[0])[1] == ".png" and verbose == True:
+            print('\nSaving graph in:', save_in[0])
+        else:
+            save_in[0] = save_in[0]+'.png'
+            if verbose == True:
+                print('\nSaving graph in:', save_in[0])
+        # save
+        mplt.savefig(save_in[0])
+        # show
+        mplt.show()  # GUI needed, use with caution
 
-    if len(save_in) == 1:
+    elif len(save_in) == 1:  # Show and be done with it
         if os.path.splitext(save_in[0])[1] == ".png" and verbose == True:
             print('\nSaving graph in:', save_in[0])
         else:
