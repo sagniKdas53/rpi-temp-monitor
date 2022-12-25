@@ -4,7 +4,7 @@ import subprocess
 from datetime import datetime, timedelta
 from time import sleep
 import matplotlib.pyplot as mplt
-
+import os
 import plotext as plt
 
 
@@ -33,16 +33,15 @@ def plot_matplotlib(x_axis, y_axis_CPU, y_axis_GPU, save_in, verbose):
     mplt.xlabel('Time H:M:S')
     mplt.title("Temperature plot")
     mplt.legend(loc="upper left")
-    if save_in == True:
-        mplt.show() # GUI needed, use with caution
+    if save_in == True:  # I don't like this that i have to check the filename with True as the filenamw would be True otherwise
+        mplt.show()  # GUI needed, use with caution
     else:
-        if '.' in save_in:
-            if 'png' in save_in.split('.') and verbose == True:
-                print('Saving graph in:', save_in)
+        if os.path.splitext(save_in)[1] == ".png" and verbose == True:
+            print('\nSaving graph in:', save_in)
         else:
             save_in = save_in+'.png'
             if verbose == True:
-                print('Saving graph in:', save_in)
+                print('\nSaving graph in:', save_in)
         mplt.savefig(save_in)
 
 
@@ -60,16 +59,17 @@ def main():
 
     group_graph = parser.add_mutually_exclusive_group()
     group_graph.add_argument('-b', '--basic', action="store_true",
-                             help='print a graph in terminal')
-    group_graph.add_argument('-a', '--advanced', type=str, metavar="",  nargs='?', const=True, default=None,
-                             help='show a advanced graph (GUI required), pass a filename to save the graph')
+                             help='print a graph in terminal using plotext')
+    group_graph.add_argument('-a', '--advanced', type=str, metavar='',  nargs='?', const=True, default=None,
+                             help='show a advanced graph using matplotlib (GUI required), pass a filename to save the graph without displaying')
 
     group_disp = parser.add_mutually_exclusive_group()
     group_disp.add_argument('-s', '--silent', action="store_true",
-                            help="pass this to not display any output")
+                            help="pass this to not display any output does not override graphs")
     group_disp.add_argument('-v', '--verbose', action="store_true",
                             help="display all output")
     opts = parser.parse_args()
+    #print(opts)
     if opts.count == None:
         opts.count = -1
     counter = 0
@@ -115,13 +115,12 @@ def main():
         print(
             f'\nAvg CPU temp: {(avg_CPU/counter):05.2f} Avg GPU temp: {(avg_GPU/counter):05.2f} Data recorded over: {((counter*cycle_duration)/60):05.2f} minutes')
     if opts.output != None:
-        if '.' in opts.output:
-            if 'csv' in opts.output.split('.') and opts.verbose == True:
-                print('Saving data in:', opts.output)
+        if os.path.splitext(opts.output)[1] == ".csv" and opts.verbose == True:
+            print('\nSaving data in:', opts.output)
         else:
             opts.output = opts.output+'.csv'
             if opts.verbose == True:
-                print('Saving data in:', opts.output)
+                print('\nSaving data in:', opts.output)
         save_csv(x_axis_printable, y_axis_CPU, y_axis_GPU, opts.output)
     if opts.basic == True or opts.advanced != None:
         if opts.verbose == True:
