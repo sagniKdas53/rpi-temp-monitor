@@ -52,19 +52,19 @@ def plot_matplotlib(x_axis, y_axis_CPU, y_axis_GPU, save_in, verbose):
 def main():
     parser = argparse.ArgumentParser(
         description="Measures and graphs tempertaure of raspberry pi")
-    parser.add_argument('-d', '--duration', type=int, metavar="", required=True,
+    parser.add_argument('-d', '--duration', type=int, metavar="<number>", required=True,
                         help="duration of each measuring cycle in seconds")
-    parser.add_argument('-l', '--log', type=int, metavar="", required=True,
+    parser.add_argument('-l', '--log', type=int, metavar="<number>", required=True,
                         help="number of measuring cycles after which to log the value")
-    parser.add_argument('-n', '--count', type=int, metavar="",  const=None, default=None,
+    parser.add_argument('-n', '--count', type=int, metavar="[number]",  const=None, default=None,
                         help="number of logging cycles after which to stop, can be left blank to measure indefinitely (not recomended)")
-    parser.add_argument('-o', '--output', type=str, metavar="", const=None, default=None,
+    parser.add_argument('-o', '--output', type=str, metavar="filename", const=None, default=None,
                         help='name of the csv to save the data, leave blank to not save')
 
     group_graph = parser.add_mutually_exclusive_group()
     group_graph.add_argument('-b', '--basic', action="store_true",
                              help='print a graph in terminal using plotext')
-    group_graph.add_argument('-a', '--advanced', action="extend", type=str, metavar=['filename','save'], nargs='*', default=[],  # blank array == show
+    group_graph.add_argument('-a', '--advanced', action="extend", type=str, metavar='''filename [show]''', nargs='*', default=[],  # blank array == show
                              help='''show a advanced graph using matplotlib (GUI required)
                             only passing the flag will show the graph and do nothing more.
                             Pass a filename to save the graph in it.
